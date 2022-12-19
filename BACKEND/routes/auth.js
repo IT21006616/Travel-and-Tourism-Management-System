@@ -67,7 +67,7 @@ router.post("/", [
 //@route GET /users/auth
 //@desc Get user by token/ Loading server
 //@access Private 
-router.get("/auth", auth , async(res,req) => {
+router.get("/auth",auth , async(req,res) => {
     try{
         const user = await User.findById(req.user.id).select("-password");
         res.json(user);

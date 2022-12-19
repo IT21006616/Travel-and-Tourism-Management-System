@@ -6,14 +6,20 @@ let customer = require("../models/customer");
 router.route("/add").post((req,res)=>{
 
     const name = req.body.name;
+    const passport = req.body.passport;
     const age = Number(req.body.age);
     const gender = req.body.gender;
+    const mobile = Number(req.body.mobile);
+    const email = req.body.email;
 
     const newCustomer = new customer({
 
         name,
+        passport,
         age,
-        gender
+        gender,
+        mobile,
+        email
 
     })
 
@@ -43,12 +49,15 @@ router.route("/").get((req,res)=>{
 //update customer details
 router.route("/update/:id").put(async(req,res)=>{
     let userId = req.params.id;
-    const {name, age, gender} = req.body;
+    const {name, passport, age, gender, mobile, email} = req.body;
 
     const updateCustomer = {
         name,
+        passport,
         age,
-        gender
+        gender,
+        mobile,
+        email
     }
 
     const update = await customer.findByIdAndUpdate(userId, updateCustomer).then(()=>{
@@ -72,6 +81,18 @@ router.route("/delete/:id").delete(async(req,res)=>{
         console.log(err.message);
         res.status(500).send({status:"Error with delete user", error:err.message});
     })
+})
+
+
+router.route("/get/:id").get(async(req,res)=>{
+    let userId = req.params.id;
+
+    const user = await customer.findById(userId).then((customer)=>{
+        res.status(200).send({status:"User fetched", user:customer});
+    }).catch((err)=>{
+        console.log(err.message);
+        res.status(500).send({status:"Error with delete user", error:err.message});
+    })
 })
 
 

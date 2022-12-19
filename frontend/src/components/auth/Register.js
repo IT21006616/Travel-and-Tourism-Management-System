@@ -1,162 +1,220 @@
-import {useRef , useState , useEffect, useRef} from "react";
-import {faCheck , faTimes , faInfoCircle} from "@fortawesome/free-solid-svg-icons";
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import { set } from "mongoose";
+import { useState, useEffect } from 'react';
+import axios from "axios";
+import React from 'react';
+import Swal from 'sweetalert2';
+import { useNavigate } from "react-router-dom";
+import {
+    MDBValidation,
+    MDBValidationItem,
+    MDBBtn,
+    MDBContainer,
+    MDBRow,
+    MDBCol,
+    MDBCard,
+    MDBCardBody,
+    MDBCardImage,
+    MDBInput,
+    MDBIcon,
+    MDBCheckbox
+  }
+  from 'mdb-react-ui-kit';
+import { values } from 'lodash';
 
-//validate usename and password
-const USER_REGEX = /^[a-zA-Z][a-zA-Z0-9-_]{3,23}$/;
-const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,24}$/;
+  function Register(){
 
-const Register = () => {
-    const userRef = useRef();
-    const errRef = useRef();
+   const[name , setName] = useState("");
+   const[email , setEmail] = useState("");
+   const[password , setPassword] = useState("");
 
-    const [user, setUser] = useState('');
-    const [validName , setValidName] = useState(false); //weather validate or not
-    const [userFocus, setUserFocus] = useState(false);
+   const navigate = useNavigate();
 
-    const [pwd, setPwd] = useState('');
-    const [validPwd , setValidPwd] = useState(false); 
-    const [PwdFocus, setPwdFocus] = useState(false);
+    const initialValues = {username: "", email:"", password:""};    //validation
 
-    const [matchPwd, setMatchPwd] = useState('');
-    const [validMatch , setValidMatch] = useState(false); 
-    const [matchFocus, setMatchFocus] = useState(false);
+    const [formValues , setFormValues] = useState(initialValues);
+    const [formErrors , setFormErrors] = useState({});
+    const [isRegister, setIsRegister] = useState(false);
 
-    const [errMsg, setErrMsg] = useState('');   //display error msg
-    const [success, setSuccess] = useState(false);  //display success msg
+
+   /* const handleChange = (e) => {
+        console.log(e.target);
+        const{name, value} = e.target;
+        setFormValues({...formValues,[name]:value});
+        console.log(formValues);
+    };*/
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        setFormErrors(validate(formValues));
+        setIsRegister(true);
+
+    };
 
     useEffect(() => {
-        userRef.current.focus();
-    },[])
+        console.log(formErrors);
+        if(Object.keys(formErrors).length === 0 && isRegister){
+            console.log(formValues);
+        }
+    },[formErrors])
 
-    useEffect(() => {
-        const result = USER_REGEX.test(user);
-        console.log(result);
-        console.log(user);
-        setValidName(result);
-    },[user])
+    const validate = (values) => {
+        const errors = {}
+        const regex = /^[^\s@+@[^\s@]+\.[^\s@]{2,}$/i;
+        if(!values.username){
+            errors.username = "Username is required!";
+        }
+        if(!values.email){
+            errors.email = "Email is required!";
+        }else if(!regex.test(values.email)){
+          errors.email = "This is not a valid email format!";
+        }
+        if(!values.password){
+            errors.password = "Password  is required!";
+        }else if(values.password.length < 4){
+          errors.password = "Password is more than 4 characters";
+        }
+        return errors;
+    };
 
-    useEffect(() => {
-        const result = USER_REGEX.test(pwd);
-        console.log(result);
-        console.log(pwd);
-        setValidPwd(result);
-        const match = pwd === matchPwd;
-        setValidMatch(match);
-    },[pwd, matchPwd])
+    function sendData (e){
+      e.preventDefault();
 
-    useEffect(() => {
-        setErrMsg(''); 
-    },[user, pwd, matchPwd])
+        const newUser = {
+          name,
+          email,
+          password
+        }
+  
+        axios.post("http://localhost:8070/users/",newUser).then(()=>{
+       //   alert("Successfully Registered")
 
-
+          Swal.fire({
+            title: 'Sucess!',
+            text: 'Successfully Registered', 
+            icon: 'success', 
+            showConfirmButton: false, 
+            timer: 1500})
+  
+          navigate("/Home");
+        
+      }).catch((err)=>{
+        alert(err)
+      })
+    }
 
     return (
-        <section>
-            <p ref={errRef} className={errMsg ? "errmsg": "offscreen"} aria-live="assertive">{errMsg}</p>
-            <h1>Sign Up</h1>
-            <form>
-                <label htmlFor="username">
-                    username:
-                    <span className={validName ? "valid" : "hide"}>
-                        <FontAwesomeIcon icon={faCheck}/>
-                    </span>
-                    <span className={validName || !user ? "hide" : "invalid"}>
-                        <FontAwesomeIcon icon = {faTimes}/>
-                    </span>
-                </label>
-                <input
-                   type="text"
-                   id="username"
-                   ref={userRef}
-                   autoComplete="off"
-                   onChange={(e) => setUser(e.target.value)}
-                   required
-                   aria-invalid={validName ? "false" : "true"}
-                   aria-describedby="uidnote"
-                   onFocus={() => setUserFocus(true)}
-                   onBlur={() => setUserFocus(false)}
-                />
-                <p id="uidnote" className={userFocous && user && !validName ? "instructions" : "offscreen"}>
-                    <FontAwesomeIcon icon={faInfoCircle}/>
-                    4 to 24 characters.<br/>
-                    Must begin with a letter.<br/>
-                    Letters , numbers , underscores , hyphens allowed.
-                </p>
+      <div>
+        <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+                <div className="container-fluid">
+                    <a className="navbar-brand" href="/" style={{color:"red"}}>LSR </a>
+                    <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDarkDropdown" aria-controls="navbarNavDarkDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                    <span className="navbar-toggler-icon"></span>
+                    </button>
+                    <div className="collapse navbar-collapse" id="navbarNavDarkDropdown">
+                        <ul className="navbar-nav">
+                            <li className="nav-item">
+                                <a className="nav-link " aria-current="page" href="/CHotel">HOME</a>
+                            </li>
+                            
+                        </ul> 
+                    </div>
+                    
+                    </div>
+             </nav>
+        <MDBContainer fluid>
+          
+          <MDBCard className='text-black m-5' style={{borderRadius: '25px'}}>
+          <MDBCardBody>
 
+          
 
-                <label htmlFor="password">
-                    password:
-                    <span className={validPwd ? "valid" : "hide"}>
-                        <FontAwesomeIcon icon={faCheck}/>
-                    </span>
-                    <span className={validPwd || !pwd ? "hide" : "invalid"}>
-                        <FontAwesomeIcon icon = {faTimes}/>
-                    </span>
-                </label>
-                <input
-                   type="password"
-                   id="password"
-                   ref={userRef}
-                   autoComplete="off"
-                   onChange={(e) => setUser(e.target.value)}
-                   required
-                   aria-invalid={validPwd ? "false" : "true"}
-                   aria-describedby="pwdnote"
-                   onFocus={() => setPwdFocus(true)}
-                   onBlur={() => setPwdFocus(false)}
-                />
-                <p id="pwdnote" className={PwdFocus && !validPwd ? "instructions" : "offscreen"}>
-                    <FontAwesomeIcon icon={faInfoCircle}/>
-                    8 to 24 characters.<br/>
-                    Must include uppercase and lowercase letters, a number and a special character.<br/>
-                    Allowed special characters: <span aria-label="exclamation mark">!</span>
-                    <span aria-label="at symbol">@</span>
-                    <span aria-label="hashtag">#</span>
-                    <span aria-label="dollar sign">$</span>
-                    <span aria-label="percent">%</span>
-                </p>
+          <form onSubmit={sendData}>
+            <MDBRow>
+            
+              <MDBCol md='10' lg='6' className='order-2 order-lg-1 d-flex flex-column align-items-center'>
+  
+                <p classNAme="text-center h1 fw-bold mb-5 mx-1 mx-md-4 mt-4">Sign up</p>
+  
+                <div className="d-flex flex-row align-items-center mb-4 ">
+                  <MDBIcon fas icon="user me-3" size='lg'/>
 
+                  <MDBInput required label='Your Name' id='name' type='text' className='w-100'  placeholder="Enter Your Name"
+                    values={formValues.username}
+                   //   onChange={handleChange}
+                     
+                    onChange={(e)=>{
 
-                <label htmlFor="confirm_pwd">
-                    confirm password:
-                    <span className={validMatch && matchPwd ? "valid" : "hide"}>
-                        <FontAwesomeIcon icon={faCheck}/>
-                    </span>
-                    <span className={validMatch || !matchPwd ? "hide" : "invalid"}>
-                        <FontAwesomeIcon icon = {faTimes}/>
-                    </span>
-                </label>
-                <input
-                   type="password"
-                   id="confirm_pwd"
-                   ref={userRef}
-                   autoComplete="off"
-                   onChange={(e) => setMatchPwd(e.target.value)}
-                   required
-                   aria-invalid={validMatch ? "false" : "true"}
-                   aria-describedby="confirmnote"
-                   onFocus={() => setMatchFocus(true)}
-                   onBlur={() => setMatchFocus(false)}
-                />
-                <p id="confirmnote" className={matchFocus && !validMatch ? "instructions" : "offscreen"}>
-                    <FontAwesomeIcon icon={faInfoCircle}/>
-                    Must match the first password input field.<br/>
-                </p>
+                      setName(e.target.value);
+       
+                  }}
+                  />
 
-                <button disabled={!validName || !validPwd || !validMatch ? true : false}>
-                    Register
-                </button>               
+                </div>
+                <p>{formErrors.username}</p>
+  
+                <div className="d-flex flex-row align-items-center mb-4">
+                  <MDBIcon fas icon="envelope me-3" size='lg'/>
+                 
+                  <MDBInput required label='Your Email' id='email' type='email' placeholder="Enter Your Email"
+                       values={formValues.email}
+                     //  onChange={handleChange}
+                       
+                    onChange={(e)=>{
+
+                      setEmail(e.target.value);
+       
+                  }}
+                   />
+                 
+                </div>
+                <p>{formErrors.email}</p>
+  
+                <div className="d-flex flex-row align-items-center mb-4">
+                  <MDBIcon fas icon="lock me-3" size='lg'/>
+                  
+                  <MDBInput required label='Password' id='password' type='password' placeholder="Enter Your Password"
+                        values={formValues.password}
+                   //    onChange={handleChange}
+                        
+                    onChange={(e)=>{
+
+                      setPassword(e.target.value);
+       
+                  }}
+                  />
+                  
+                </div>
+                <p>{formErrors.password}</p>
+  
+               
+  
+                <div className='mb-4'>
+                  <p>
+                     Already have an account?
+                      <span className="line">
+                        <a href="/Log">Sign in</a>
+                      </span>
+                  </p>
+                </div>
+  
+                <button type="submit" className="btn btn-primary">Register</button>
+  
+              </MDBCol>
+  
+              <MDBCol md='10' lg='6' className='order-1 order-lg-2 d-flex align-items-center'>
+                <MDBCardImage src='https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-registration/draw1.webp' fluid/>
+              </MDBCol>
+  
+            </MDBRow>
             </form>
-            <p>
-                Already have an account?
-                <span className="line">
-                    <a href="#">Sign in</a>
-                </span>
-            </p>
-        </section>
-    )
-}
-
+            
+          </MDBCardBody>
+        </MDBCard>
+          
+        
+  
+      </MDBContainer>
+      </div>
+    );
+  }
+  
 export default Register;

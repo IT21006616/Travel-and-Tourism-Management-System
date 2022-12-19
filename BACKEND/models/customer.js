@@ -9,12 +9,27 @@ const customerSchema = new Schema({
         required : true
     },
 
+    passport : {
+        type : String,
+        required : true
+    },
+
     age :{
         type : Number,
         required : true
     },
 
     gender :{
+        type : String,
+        required : true
+    },
+
+    mobile : {
+        type : String,
+        required : true
+    },
+
+    email : {
         type : String,
         required : true
     },
